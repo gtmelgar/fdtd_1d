@@ -47,17 +47,29 @@ H1 = 0;
 % solve
 for T = 1:num_time_steps
     
+    % H2 and H1 are used for perfect boundary condition
+    % H2 and H1 are needed since wave propragates 1 cell every two time steps
     H2=H1; 
     H1=Hx(1);
+
+    % update H from E
     for nz = 1:Nz-1
         Hx(nz) = Hx(nz) + mHx(nz)*(Ey(nz+1) - Ey(nz))/dz;
     end
+    % note E2 = 0 are Dirichlet boundary conditions 
+    % for periodic boundary conditions use E2 = Ey(1) 
     Hx(Nz) = Hx(Nz) + mHx(Nz)*(E2 - Ey(Nz))/dz;
-
+    
+    % E2 and E1 are used for perfect boundary condition
+    % E2 and E1 are needed since wave propragates 1 cell every two time steps
     E2=E1; 
     E1=Ey(Nz);
 
+    % note H2 = 0 are Dirichlet boundary conditions
+    % for periodic boundary conditions use H2 = Hx(Nz) 
     Ey(1) = Ey(1) + mEy(1)*(Hx(1) - H2)/dz;
+
+    % update E from H 
     for nz = 2:Nz
         Ey(nz) = Ey(nz) + mEy(nz)*(Hx(nz) - Hx(nz-1))/dz;
     end
