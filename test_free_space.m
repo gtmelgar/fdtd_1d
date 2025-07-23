@@ -1,9 +1,9 @@
-lambda = 900:1000;
+lambda = 200:300;
 n_max = 1;
 lambda_res = 10;
 c0 = 299792458; % free space light speed m/s
 
-dmin = 50;
+dmin = 100;
 nd_res = 4;
 n_bc = 1;
 
@@ -14,19 +14,35 @@ dz = min(dz1,dz2);
 
 dt = n_bc.*dz/(2*c0);
 
-dc = 1;
+dc = 100;
 
 % further refine dz
 N = ceil(dc/dz);
 dz = dc/N;
 
-Nz = 100;
+Nz = 500;
 
 % get num of time steps to solve for
 t_prop = n_max*Nz*dz./c0;
 pulse_duration = 100;
 
-num_time_steps = 12.*pulse_duration + 5 * t_prop;
+num_time_steps = 15.*pulse_duration + 5 * t_prop;
+
+% generate gaussian pulse and delay by 6tau
+fmax = c0/min(lambda);
+tau = 0.5./fmax;
+t = 0:dt:num_time_steps*dt;
+g_t = exp(-(t-6*tau).^2./tau.^2); 
+
+% init FFT 
+num_steps = 1001;
+freq = linspace(-fmax/2,fmax/2,num_steps);
+
+num_f = num_steps;
+K = exp(-1i*2*pi*dt*freq);
+EyR = zeros(1,num_f);
+EyT = zeros(1,num_f);
+src = zeros(1,num_f);
 
 % material properties
 ER = ones(1,Nz);
@@ -44,6 +60,10 @@ E1 = 0;
 H2 = 0;
 H1 = 0;
 
+%location of source
+nzsrc = 100;
+
+spacer_region = max(lambda);
 % solve
 for T = 1:num_time_steps
     
@@ -74,4 +94,29 @@ for T = 1:num_time_steps
         Ey(nz) = Ey(nz) + mEy(nz)*(Hx(nz) - Hx(nz-1))/dz;
     end
 
+    Ey(nzsrc) = Ey(nzsrc) + g_t(T);
+
+    % update fourier transforms
+    % Update Fourier Transforms
+    % for nf = 1 : num_f
+    %     EyR(nf) = EyR(nf) + (K(nf)^T)*Ey(1);
+    %     EyT(nf) = EyT(nf) + (K(nf)^T)*Ey(Nz);
+    %     src(nf) = src(nf) + (K(nf)^T)*g_t(Nz);
+    % end
+    if mod(T,2000)
+        clf;
+        plot(Ey);hold on 
+        plot(Hx);
+        ylim([-1.5, 1.5])
+        drawnow;
+    end
 end
+
+% scale FFT
+EyR = EyR*dt;
+EyT = EyT*dt;
+
+% transmit and reflectance plots
+reflectance = abs(EyR./src).^2;
+transmittance = abs(EyT./src).^2;
+CON = reflectance + transmittance;
