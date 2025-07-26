@@ -1,6 +1,6 @@
-lambda = 200:300;
+lambda = 200:220;
 n_max = 1;
-lambda_res = 10;
+lambda_res = 20;
 c0 = 299792458; % free space light speed m/s
 
 dmin = 100;
@@ -48,6 +48,14 @@ src = zeros(1,num_f);
 ER = ones(1,Nz);
 UR = ones(1,Nz);
 
+% numerical disersion correction factor
+n_avg = mean(n_max);
+f_mid = mean(c0./lambda);
+k0 = 2*pi*f_mid./c0;
+disp_f = c0*dt/(n_avg*dz) * sin(k0*n_avg*dz/2)/sin(c0*k0*dt/2);
+UR = disp_f*UR;
+ER = disp_f*ER;
+
 % update coeffs
 mEy = (c0*dt)./ER;
 mHx = (c0*dt)./UR;
@@ -64,6 +72,9 @@ H1 = 0;
 nzsrc = 100;
 
 spacer_region = max(lambda);
+
+
+
 % solve
 for T = 1:num_time_steps
     
@@ -98,16 +109,24 @@ for T = 1:num_time_steps
 
     % update fourier transforms
     % Update Fourier Transforms
-    % for nf = 1 : num_f
-    %     EyR(nf) = EyR(nf) + (K(nf)^T)*Ey(1);
-    %     EyT(nf) = EyT(nf) + (K(nf)^T)*Ey(Nz);
-    %     src(nf) = src(nf) + (K(nf)^T)*g_t(Nz);
-    % end
+    for nf = 1 : num_f
+        EyR(nf) = EyR(nf) + (K(nf)^T)*Ey(1);
+        EyT(nf) = EyT(nf) + (K(nf)^T)*Ey(Nz);
+        src(nf) = src(nf) + (K(nf)^T)*Ey(nzsrc);
+    end
+
     if mod(T,2000)
         clf;
+        subplot(2,1,1)
+        
         plot(Ey);hold on 
         plot(Hx);
         ylim([-1.5, 1.5])
+        
+        subplot(2,1,2)
+        plot(abs(EyR./src));hold on
+        plot(abs(EyT./src));
+        ylim([-0.5, 1.5])
         drawnow;
     end
 end
