@@ -158,17 +158,22 @@ for T = 1:num_steps
     if mod(T,10)==0 && do_plot
         
         clf;
-        subplot(2,1,1)
+        subplot(3,1,1)
         plot(Ey);hold on 
         plot(Hx);
         plot(UR/max(UR));
         grid on;
         ylim([-1.5, 1.5])
-        subplot(2,1,2)
+        subplot(3,1,2)
         plot(abs(EyR./src).^2);hold on
         plot(abs(EyT./src).^2);
         plot(abs(EyT./src).^2+abs(EyR./src).^2);
         ylim([-0.5, 1.5])
+
+        subplot(3,1,3)
+        plot(abs(EyR)); hold on
+        plot(abs(EyT))
+        plot(abs(src))
         drawnow;
     end
 end
