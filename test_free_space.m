@@ -1,3 +1,4 @@
+close all
 lambda = 200:220;
 n_max = 1;
 lambda_res = 20;
@@ -31,8 +32,19 @@ num_time_steps = 15.*pulse_duration + 5 * t_prop;
 % generate gaussian pulse and delay by 6tau
 fmax = c0/min(lambda);
 tau = 0.5./fmax;
-t = 0:dt:num_time_steps*dt;
-g_t = exp(-(t-6*tau).^2./tau.^2); 
+t = (0:num_time_steps-1)*dt;
+
+% TF/SF formulation
+ersrc = 1; % TODO: get from the source injection point
+ursrc = 1;
+nsrc = n_bc;
+
+g_t = exp(-((t-6*tau)./tau).^2); % e-field
+Esrc = g_t;
+A = -sqrt(ersrc/ursrc);
+% delay between E and H
+delt = nsrc*dz/(2*c0) + dt/2;
+Hsrc = A*exp(-((t-6*tau+delt)/tau).^2);
 
 % init FFT 
 num_steps = 1001;
@@ -73,8 +85,6 @@ nzsrc = 100;
 
 spacer_region = max(lambda);
 
-
-
 % solve
 for T = 1:num_time_steps
     
@@ -89,8 +99,11 @@ for T = 1:num_time_steps
     end
     % note E2 = 0 are Dirichlet boundary conditions 
     % for periodic boundary conditions use E2 = Ey(1) 
-    Hx(Nz) = Hx(Nz) + mHx(Nz)*(E2 - Ey(Nz))/dz;
+    Hx(Nz) = Hx(Nz) + mHx(Nz)*(E2 - Ey(Nz))/dz; 
     
+    % TF/SF correction term
+    Hx(nzsrc-1) = Hx(nzsrc-1) - mHx(nzsrc-1) .* Esrc(T) ./ dz;
+
     % E2 and E1 are used for perfect boundary condition
     % E2 and E1 are needed since wave propragates 1 cell every two time steps
     E2=E1; 
@@ -104,9 +117,11 @@ for T = 1:num_time_steps
     for nz = 2:Nz
         Ey(nz) = Ey(nz) + mEy(nz)*(Hx(nz) - Hx(nz-1))/dz;
     end
+    % Ey(nzsrc) = Ey(nzsrc) + g_t(T); % soft source for debug only
 
-    Ey(nzsrc) = Ey(nzsrc) + g_t(T);
-
+    % TF/SF correction term
+    Ey(nzsrc) = Ey(nzsrc) - mEy(nzsrc) * Hsrc(T) ./ dz;
+    
     % update fourier transforms
     % Update Fourier Transforms
     for nf = 1 : num_f
@@ -118,11 +133,9 @@ for T = 1:num_time_steps
     if mod(T,2000)
         clf;
         subplot(2,1,1)
-        
         plot(Ey);hold on 
         plot(Hx);
         ylim([-1.5, 1.5])
-        
         subplot(2,1,2)
         plot(abs(EyR./src));hold on
         plot(abs(EyT./src));
