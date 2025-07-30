@@ -7,6 +7,8 @@ EyR = zeros(1,param.num_bins);
 EyT = zeros(1,param.num_bins);
 src = zeros(1,param.num_bins);
 
+Esrc_FFT = abs(fft(Esrc));
+Esrc_FFT_x = (0:length(Esrc)-1)*1./param.dt*1/length(Esrc);
 f_max_plot = max(f_Hz);
 freq = linspace(0,f_max_plot,param.num_bins);
 K = exp(-1i*2*pi*param.dt*freq);
@@ -77,30 +79,45 @@ for T = 1:num_steps
         subplot(3,1,1)
         plot(Ey);hold on 
         plot(Hx);
+        xlabel('unit cell')
+        ylabel('amplitude')
         ylim([-1.5, 1.5])
         yyaxis right
         plot(n_matrix);
-        grid on;
+        ylabel('refractive index')
+        % legend({'Ey','Hx','Ref Index'})
+        % grid on;
+        title(['Field at step ' num2str(T) ' of ' num2str(num_steps)])
         
         subplot(3,1,2)
-        plot(abs(EyR./src).^2);hold on
-        plot(abs(EyT./src).^2);
-        plot(abs(EyT./src).^2+abs(EyR./src).^2);
+        plot(freq,abs(EyT./src).^2);hold on
+        plot(freq,abs(EyR./src).^2);
+        plot(freq,abs(EyT./src).^2+abs(EyR./src).^2);
         ylim([-0.5, 1.5])
+        % legend({'Transmittance','Reflectance','T + R'})
+        title(['Field at step ' num2str(T*param.dt/1e-9) 'ns of ' num2str(num_steps*param.dt/1e-9) 'ns'])
 
         subplot(3,1,3)
-        plot(abs(EyR)); hold on
-        plot(abs(EyT))
-        plot(abs(src))
+        plot(Esrc_FFT_x,Esrc_FFT);hold on
+        plot(freq,abs(EyT));
+        plot(freq,abs(EyR))
+        plot(freq,abs(src))
+        xlim([freq(1) freq(end)]);
+        % legend({'T Spectrum','R Spectrum','Source Spectrum'})
+
+        % set(gca,'LegendColorbarListeners',[]);
+        setappdata(gca,'LegendColorbarManualSpace',1);
+        setappdata(gca,'LegendColorbarReclaimSpace',1);
+
         drawnow;
     end
 end
 
-% scale FFT
-EyR = EyR*param.dt;
-EyT = EyT*param.dt;
-
-% transmit and reflectance plots
-reflectance = abs(EyR./src).^2;
-transmittance = abs(EyT./src).^2;
-CON = reflectance + transmittance;
+% % % scale FFT
+% % EyR = EyR*param.dt;
+% % EyT = EyT*param.dt;
+% % 
+% % % transmit and reflectance plots
+% % reflectance = abs(EyR./src).^2;
+% % transmittance = abs(EyT./src).^2;
+% % CON = reflectance + transmittance;

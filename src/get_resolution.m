@@ -7,10 +7,7 @@ param.dz = min(dz1,dz2);
 
 dc = dmin;
 
-% further refine dz (N is num cells to fit device)
+% further refine dz (N is num cells to fit smallest device length)
 param.N = ceil(dc/param.dz);
 param.dz = dc/param.N; 
-
-% calculate total number of points for simulation
-param.Nz = param.N + 2*param.spacerRegion + 3; % 3 comes from T R and source cells
 
