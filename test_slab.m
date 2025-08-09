@@ -9,8 +9,7 @@ param = getDefaultParameters();
 param.nzsrc = 2;
 param.spacerRegion = 10;
 param.num_plot = 10;
-param.num_bins = 100;
-f_Hz = (0.1:0.1:1)*1e9;
+f_Hz = (0.1:0.01:1)*1e9;
 
 u_r = 2;
 e_r = 6;

@@ -1,17 +1,18 @@
 function run_fdtd(ER,UR,Esrc,Hsrc,num_steps,param,f_Hz)
 
 n_matrix = sqrt(UR.*ER);
-
+num_bins = length(f_Hz);
 % init FFT 
-EyR = zeros(1,param.num_bins);
-EyT = zeros(1,param.num_bins);
-src = zeros(1,param.num_bins);
+EyR = zeros(1,num_bins);
+EyT = zeros(1,num_bins);
+src = zeros(1,num_bins);
 
 Esrc_FFT = abs(fft(Esrc));
 Esrc_FFT_x = (0:length(Esrc)-1)*1./param.dt*1/length(Esrc);
-f_max_plot = max(f_Hz);
-freq = linspace(0,f_max_plot,param.num_bins);
-K = exp(-1i*2*pi*param.dt*freq);
+% f_max_plot = max(f_Hz);
+% freq = linspace(0,f_max_plot,num_bins);
+freq = f_Hz;
+K = exp(-1i*2*pi*param.dt*f_Hz);
 
 
 % update coeffs
@@ -67,7 +68,7 @@ for T = 1:num_steps
     
     % update fourier transforms
     % Update Fourier Transforms
-    for nf = 1 : param.num_bins
+    for nf = 1 : length(f_Hz)%num_bins
         EyR(nf) = EyR(nf) + (K(nf)^T)*Ey(1);
         EyT(nf) = EyT(nf) + (K(nf)^T)*Ey(param.Nz);
         src(nf) = src(nf) + (K(nf)^T)*Esrc(T);
