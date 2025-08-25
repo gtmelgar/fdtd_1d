@@ -95,7 +95,19 @@ for T = 1:num_steps
         plot(freq,abs(EyR./src).^2);
         plot(freq,abs(EyT./src).^2+abs(EyR./src).^2);
         ylim([-0.5, 1.5])
-        % legend({'Transmittance','Reflectance','T + R'})
+
+        % semilogy(freq,abs(EyT./src).^2);hold on
+        % semilogy(freq,abs(EyR./src).^2);
+        % semilogy(freq,abs(EyT./src).^2+abs(EyR./src).^2);
+
+        % plot(freq,10*log10(abs(EyT./src).^2));hold on
+        % plot(freq,10*log10(abs(EyR./src).^2));
+        % plot(freq,10*log10(abs(EyT./src).^2+abs(EyR./src).^2));
+        % ylim([-30 1])
+
+        
+        % set(gca, 'YScale', 'log') 
+        % % legend({'Transmittance','Reflectance','T + R'})
         title(['Field at step ' num2str(T*param.dt/1e-9) 'ns of ' num2str(num_steps*param.dt/1e-9) 'ns'])
 
         subplot(3,1,3)
@@ -107,8 +119,8 @@ for T = 1:num_steps
         % legend({'T Spectrum','R Spectrum','Source Spectrum'})
 
         % set(gca,'LegendColorbarListeners',[]);
-        setappdata(gca,'LegendColorbarManualSpace',1);
-        setappdata(gca,'LegendColorbarReclaimSpace',1);
+        % setappdata(gca,'LegendColorbarManualSpace',1);
+        % setappdata(gca,'LegendColorbarReclaimSpace',1);
 
         drawnow;
     end
